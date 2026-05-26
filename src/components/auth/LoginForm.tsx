@@ -6,14 +6,17 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useAuth } from '@/contexts/AuthContext';
 import { ShieldCheck, Loader2 } from 'lucide-react';
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { motion } from 'framer-motion';
 
+// Esquema Zod flexível para aceitar 'admin' ou email válido de corporações
 const loginSchema = z.object({
-  email: z.string().email({ message: "Por favor, insira um email válido." }),
+  email: z.string().refine(
+    (val) => val === "admin" || z.string().email().safeParse(val).success,
+    { message: "Insira um e-mail corporativo válido ou 'admin' para homologar." }
+  ),
   password: z.string().min(1, { message: "A senha é obrigatória." }),
 });
 
@@ -21,6 +24,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 
 export function LoginForm() {
   const [loading, setLoading] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
   const { login } = useAuth();
   const { toast } = useToast();
 
@@ -49,6 +53,16 @@ export function LoginForm() {
     }
   };
 
+  // Coordenadas das micro-partículas estelares ao redor do botão
+  const particles = [
+    { id: 1, x: -40, y: -20, delay: 0.1 },
+    { id: 2, x: 45, y: -25, delay: 0.3 },
+    { id: 3, x: -35, y: 20, delay: 0.2 },
+    { id: 4, x: 40, y: 25, delay: 0.4 },
+    { id: 5, x: 0, y: -30, delay: 0.5 },
+    { id: 6, x: -5, y: 30, delay: 0.6 },
+  ];
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -64,17 +78,17 @@ export function LoginForm() {
         </div>
         <h2 className="text-3xl font-bold tracking-tight text-white">VERITAS <span className="text-blue-500 font-medium text-lg tracking-normal">GRC</span></h2>
         <p className="text-slate-400 text-sm mt-2">
-          Insira suas credenciais para acessar o ambiente corporativo
+          Acesse a plataforma de Governança, Riscos e Compliance
         </p>
       </div>
 
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
         <div className="space-y-2">
-          <Label htmlFor="email" className="text-slate-300 text-xs font-semibold uppercase tracking-wider">Email Corporativo</Label>
+          <Label htmlFor="email" className="text-slate-300 text-xs font-semibold uppercase tracking-wider">Usuário ou E-mail</Label>
           <Input 
             id="email" 
-            type="email" 
-            placeholder="nome@empresa.com" 
+            type="text" 
+            placeholder="admin ou nome@empresa.com" 
             className="bg-slate-950/50 border-slate-800 text-white placeholder-slate-500 focus:border-blue-500 focus:ring-blue-500/20 transition-all"
             {...form.register("email")} 
           />
@@ -99,22 +113,52 @@ export function LoginForm() {
           )}
         </div>
 
-        <motion.button 
-          type="submit" 
-          disabled={loading} 
-          whileHover={{ scale: 1.015, boxShadow: "0 10px 25px -5px rgba(59, 130, 246, 0.4)" }}
-          whileTap={{ scale: 0.985 }}
-          className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium py-3 rounded-xl shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {loading ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin text-white" />
-              <span>Autenticando...</span>
-            </>
-          ) : "Entrar na Plataforma"}
-        </motion.button>
+        <div className="relative pt-2">
+          {/* Pontos brancos estelares interativos ao passar o mouse */}
+          {isHovered && !loading && particles.map((p) => (
+            <motion.div
+              key={p.id}
+              className="absolute w-1.5 h-1.5 bg-white rounded-full pointer-events-none z-20 opacity-70"
+              style={{
+                left: `calc(50% + ${p.x}px)`,
+                top: `calc(50% + ${p.y}px)`,
+              }}
+              animate={{
+                scale: [1, 1.6, 1],
+                opacity: [0.6, 1, 0.6],
+                rotate: [0, 360],
+                x: [p.x, p.x * 1.3, p.x],
+                y: [p.y, p.y * 1.3, p.y],
+              }}
+              transition={{
+                duration: 2.5,
+                repeat: Infinity,
+                delay: p.delay,
+                ease: "easeInOut"
+              }}
+            />
+          ))}
+
+          <motion.button 
+            type="submit" 
+            disabled={loading} 
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+            whileHover={{ scale: 1.015, boxShadow: "0 10px 25px -5px rgba(59, 130, 246, 0.4)" }}
+            whileTap={{ scale: 0.985 }}
+            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold py-3 rounded-xl shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed z-10 relative overflow-hidden"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin text-white" />
+                <span>Autenticando...</span>
+              </>
+            ) : "Entrar na Plataforma"}
+          </motion.button>
+        </div>
       </form>
     </motion.div>
   );
 }
+
 
