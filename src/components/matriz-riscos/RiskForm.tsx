@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId } from 'react';
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -12,8 +12,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { DatePicker } from '../ui/date-picker';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { DatePicker } from '@/components/ui/date-picker';
 
 const riskSchema = z.object({
   title: z.string().min(3, { message: "O título deve ter pelo menos 3 caracteres." }),
@@ -63,6 +63,8 @@ export function RiskForm({ riskToEdit, onFormSubmit }: RiskFormProps) {
   const onSubmit = (data: RiskFormValues) => {
     const riskData = {
         ...data,
+        probability: data.probability as 1 | 2 | 3 | 4 | 5,
+        impact: data.impact as 1 | 2 | 3 | 4 | 5,
         dueDate: data.dueDate.toISOString(),
         attachments: riskToEdit?.attachments || [],
         actionPlans: riskToEdit?.actionPlans || [],

@@ -40,7 +40,7 @@ export const generateRiskReportPDF = (risks: Risk[]) => {
         },
         didDrawPage: (data) => {
             doc.setFontSize(10);
-            doc.text(`Página ${doc.internal.getNumberOfPages()}`, data.settings.margin.left, doc.internal.pageSize.height - 10);
+            doc.text(`Página ${doc.getNumberOfPages()}`, data.settings.margin.left, doc.internal.pageSize.height - 10);
         }
     });
 

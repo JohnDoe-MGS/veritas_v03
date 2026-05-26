@@ -6,10 +6,12 @@ import { FileText, Search, Plus, Star, Eye, Download, Clock, User, Bookmark } fr
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { cn } from '@/lib/utils';
-import { useDocuments, Document } from '@/contexts/DocumentContext';
+import { cn, formatDateToDisplay } from '@/lib/utils';
+import { useDocuments } from '@/contexts/DocumentContext';
+import { Document } from '@/lib/types';
 import { useToast } from '@/components/ui/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
 
 const typeIcons = { policy: FileText, procedure: FileText, guideline: Bookmark, template: FileText, report: FileText };
 const typeConfig = { policy: { label: 'Política', color: 'bg-blue-500' }, procedure: { label: 'Procedimento', color: 'bg-green-500' }, guideline: { label: 'Diretriz', color: 'bg-purple-500' }, template: { label: 'Template', color: 'bg-orange-500' }, report: { label: 'Relatório', color: 'bg-red-500' } };

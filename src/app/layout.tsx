@@ -1,19 +1,32 @@
-"use client";
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
+import { Providers } from "@/components/providers";
+import { Toaster } from "@/components/ui/toaster";
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Loader2 } from 'lucide-react';
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-sans",
+});
 
-export default function HomePage() {
-  const router = useRouter();
+export const metadata: Metadata = {
+  title: "VERITAS GRC - Governança, Riscos e Compliance",
+  description: "Plataforma integrada de Governança, Riscos e Compliance (GRC) para controle, auditorias, planos de ação e gestão documental.",
+};
 
-  useEffect(() => {
-    router.replace('/login');
-  }, [router]);
-
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
-    <div className="flex h-screen w-full items-center justify-center">
-      <Loader2 className="h-16 w-16 animate-spin" />
-    </div>
+    <html lang="pt-BR">
+      <body className={`${inter.variable} font-sans antialiased`}>
+        <Providers>
+          {children}
+          <Toaster />
+        </Providers>
+      </body>
+    </html>
   );
 }
