@@ -99,19 +99,22 @@ export function LoginForm() {
           )}
         </div>
 
-        <Button 
+        <motion.button 
           type="submit" 
           disabled={loading} 
-          className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium py-2.5 rounded-xl shadow-lg shadow-blue-500/20 transition-all hover:scale-[1.01]"
+          whileHover={{ scale: 1.015, boxShadow: "0 10px 25px -5px rgba(59, 130, 246, 0.4)" }}
+          whileTap={{ scale: 0.985 }}
+          className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium py-3 rounded-xl shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? (
-            <span className="flex items-center justify-center gap-2">
+            <>
               <Loader2 className="h-4 w-4 animate-spin text-white" />
-              Autenticando...
-            </span>
+              <span>Autenticando...</span>
+            </>
           ) : "Entrar na Plataforma"}
-        </Button>
+        </motion.button>
       </form>
     </motion.div>
   );
-}
+}
+
