@@ -4,6 +4,7 @@ import React, { createContext, useContext, ReactNode, useEffect, useState } from
 import { useRouter } from 'next/navigation';
 import { User } from '@/lib/types';
 import { supabase } from '@/lib/supabaseClient';
+import { useLocalStorage } from '@/hooks/useLocalStorage';
 
 interface AuthContextType {
   user: User | null;
@@ -17,16 +18,21 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useLocalStorage<User | null>('veritas_user', null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
     // Carregar a sessão inicial e ouvir mudanças de estado
     const getInitialSession = async () => {
+      // Se já tivermos um usuário de homologação logado no localStorage, mantemos
+      if (user?.id === 'user-homologation-admin') {
+        setLoading(false);
+        return;
+      }
+
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
-        // Obter os metadados do profile no banco
         const { data: profile } = await supabase
           .from('profiles')
           .select('name, role')
@@ -39,6 +45,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           name: profile?.name || session.user.user_metadata?.name || 'Usuário',
           role: profile?.role || 'user'
         });
+      } else {
+        setUser(null);
       }
       setLoading(false);
     };
@@ -60,7 +68,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           role: profile?.role || 'user'
         });
       } else {
-        setUser(null);
+        // Só limpamos o usuário se ele NÃO for o de homologação
+        setUser(prev => {
+          if (prev?.id === 'user-homologation-admin') {
+            return prev;
+          }
+          return null;
+        });
       }
       setLoading(false);
     });
@@ -104,7 +118,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     router.push('/login');
   };
 
-
   const value = {
     user,
     isAuthenticated: !!user,
@@ -123,4 +136,5 @@ export const useAuth = (): AuthContextType => {
     throw new Error('useAuth deve ser usado dentro de um AuthProvider');
   }
   return context;
-};
+};
+

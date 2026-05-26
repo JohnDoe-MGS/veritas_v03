@@ -53,14 +53,26 @@ export function LoginForm() {
     }
   };
 
-  // Coordenadas das micro-partículas estelares ao redor do botão
+  // Coordenadas das micro-partículas estelares ao redor do botão (Volume triplicado: 18 partículas)
   const particles = [
-    { id: 1, x: -40, y: -20, delay: 0.1 },
-    { id: 2, x: 45, y: -25, delay: 0.3 },
-    { id: 3, x: -35, y: 20, delay: 0.2 },
-    { id: 4, x: 40, y: 25, delay: 0.4 },
-    { id: 5, x: 0, y: -30, delay: 0.5 },
-    { id: 6, x: -5, y: 30, delay: 0.6 },
+    { id: 1, x: -60, y: -20, delay: 0.1 },
+    { id: 2, x: 65, y: -25, delay: 0.3 },
+    { id: 3, x: -55, y: 20, delay: 0.2 },
+    { id: 4, x: 60, y: 25, delay: 0.4 },
+    { id: 5, x: 0, y: -28, delay: 0.5 },
+    { id: 6, x: -5, y: 28, delay: 0.6 },
+    { id: 7, x: -110, y: -15, delay: 0.15 },
+    { id: 8, x: 110, y: -18, delay: 0.35 },
+    { id: 9, x: -105, y: 15, delay: 0.25 },
+    { id: 10, x: 105, y: 18, delay: 0.45 },
+    { id: 11, x: -80, y: -24, delay: 0.55 },
+    { id: 12, x: 80, y: 24, delay: 0.22 },
+    { id: 13, x: -30, y: -26, delay: 0.12 },
+    { id: 14, x: 30, y: 26, delay: 0.32 },
+    { id: 15, x: -120, y: 0, delay: 0.42 },
+    { id: 16, x: 120, y: 0, delay: 0.62 },
+    { id: 17, x: -10, y: -28, delay: 0.72 },
+    { id: 18, x: 10, y: 28, delay: 0.82 },
   ];
 
   return (
@@ -114,30 +126,33 @@ export function LoginForm() {
         </div>
 
         <div className="relative pt-2">
-          {/* Pontos brancos estelares interativos ao passar o mouse */}
+          {/* Pontos brancos estelares interativos ao passar o mouse (80% menores: w-0.5 h-0.5 / 1.5px) */}
           {isHovered && !loading && particles.map((p) => (
             <motion.div
               key={p.id}
-              className="absolute w-1.5 h-1.5 bg-white rounded-full pointer-events-none z-20 opacity-70"
+              className="absolute rounded-full pointer-events-none z-20 bg-white"
               style={{
+                width: '1.2px',
+                height: '1.2px',
                 left: `calc(50% + ${p.x}px)`,
                 top: `calc(50% + ${p.y}px)`,
+                boxShadow: '0 0 4px 1px rgba(255, 255, 255, 0.8)',
               }}
               animate={{
-                scale: [1, 1.6, 1],
-                opacity: [0.6, 1, 0.6],
-                rotate: [0, 360],
-                x: [p.x, p.x * 1.3, p.x],
-                y: [p.y, p.y * 1.3, p.y],
+                scale: [1, 1.8, 1],
+                opacity: [0.4, 0.9, 0.4],
+                x: [p.x, p.x * 1.08, p.x],
+                y: [p.y, p.y * 1.08, p.y],
               }}
               transition={{
-                duration: 2.5,
+                duration: 2.2,
                 repeat: Infinity,
                 delay: p.delay,
                 ease: "easeInOut"
               }}
             />
           ))}
+
 
           <motion.button 
             type="submit" 

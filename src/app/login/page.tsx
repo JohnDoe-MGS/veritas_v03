@@ -8,9 +8,10 @@ export default function LoginPage() {
     <div 
       className="flex items-center justify-center min-h-screen w-full relative overflow-hidden px-4 py-8 sm:px-6 md:px-8"
       style={{
-        background: 'radial-gradient(circle at center, #0f172a 0%, #020617 100%)',
+        background: 'radial-gradient(circle at center, #1e293b 0%, #0f172a 100%)',
       }}
     >
+
       {/* Ondas Fluidas SVG Animadas com Alta Aceleração */}
       <div className="absolute inset-0 z-0 pointer-events-none opacity-40 select-none">
         <svg className="w-full h-full absolute inset-0" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" viewBox="0 0 1440 800">
