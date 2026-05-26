@@ -8,19 +8,22 @@ import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 
 export function MainLayout({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!loading && !isAuthenticated) {
       router.push('/login');
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, loading, router]);
 
-  if (!isAuthenticated) {
+  if (loading || !isAuthenticated) {
     return (
-      <div className="flex h-screen w-full items-center justify-center">
-        <Loader2 className="h-16 w-16 animate-spin text-primary" />
+      <div className="flex h-screen w-full items-center justify-center bg-slate-950">
+        <div className="text-center space-y-4">
+          <Loader2 className="h-12 w-12 animate-spin text-blue-500 mx-auto" />
+          <p className="text-gray-400 font-medium text-sm animate-pulse">Carregando VERITAS GRC...</p>
+        </div>
       </div>
     );
   }
@@ -36,4 +39,4 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
       </div>
     </div>
   );
-}
+}

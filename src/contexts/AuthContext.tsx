@@ -1,9 +1,9 @@
 "use client";
 
-import React, { createContext, useContext, ReactNode } from 'react';
+import React, { createContext, useContext, ReactNode, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { User } from '@/lib/types';
+import { supabase } from '@/lib/supabaseClient';
 
 interface AuthContextType {
   user: User | null;
@@ -11,41 +11,79 @@ interface AuthContextType {
   isAdmin: boolean;
   login: (email: string, pass: string) => Promise<void>;
   logout: () => void;
+  loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const TEST_USERS: Record<string, { pass: string, user: User }> = {
-    'admin@veritas.com': {
-        pass: 'compliance2024',
-        user: { id: 'user-01', email: 'admin@veritas.com', name: 'Admin VERITAS', role: 'admin' }
-    },
-    'user@veritas.com': {
-        pass: 'user2024',
-        user: { id: 'user-02', email: 'user@veritas.com', name: 'Usuário Padrão', role: 'user' }
-    }
-};
-
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useLocalStorage<User | null>('user', null);
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  const login = async (email: string, pass: string): Promise<void> => {
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        const userData = TEST_USERS[email];
-        if (userData && userData.pass === pass) {
-          setUser(userData.user);
-          router.push('/dashboard');
-          resolve();
-        } else {
-          reject(new Error('Credenciais inválidas.'));
-        }
-      }, 500);
+  useEffect(() => {
+    // Carregar a sessão inicial e ouvir mudanças de estado
+    const getInitialSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        // Obter os metadados do profile no banco
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('name, role')
+          .eq('id', session.user.id)
+          .single();
+
+        setUser({
+          id: session.user.id,
+          email: session.user.email || '',
+          name: profile?.name || session.user.user_metadata?.name || 'Usuário',
+          role: profile?.role || 'user'
+        });
+      }
+      setLoading(false);
+    };
+
+    getInitialSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session?.user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('name, role')
+          .eq('id', session.user.id)
+          .single();
+
+        setUser({
+          id: session.user.id,
+          email: session.user.email || '',
+          name: profile?.name || session.user.user_metadata?.name || 'Usuário',
+          role: profile?.role || 'user'
+        });
+      } else {
+        setUser(null);
+      }
+      setLoading(false);
     });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  const login = async (email: string, pass: string): Promise<void> => {
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password: pass,
+    });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+    router.push('/dashboard');
   };
 
-  const logout = () => {
+  const logout = async () => {
+    await supabase.auth.signOut();
     setUser(null);
     router.push('/login');
   };
@@ -56,6 +94,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     isAdmin: user?.role === 'admin',
     login,
     logout,
+    loading,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -67,4 +106,4 @@ export const useAuth = (): AuthContextType => {
     throw new Error('useAuth deve ser usado dentro de um AuthProvider');
   }
   return context;
-};
+};
