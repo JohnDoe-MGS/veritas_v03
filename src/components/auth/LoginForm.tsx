@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useAuth } from '@/contexts/AuthContext';
-import { ShieldCheck, Loader2 } from 'lucide-react';
+import { ShieldCheck, Loader2, Eye, EyeOff } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
@@ -15,7 +15,7 @@ import { motion } from 'framer-motion';
 const loginSchema = z.object({
   email: z.string().refine(
     (val) => val === "admin" || z.string().email().safeParse(val).success,
-    { message: "Insira um e-mail corporativo válido ou 'admin' para homologar." }
+    { message: "Por favor, insira um e-mail corporativo válido." }
   ),
   password: z.string().min(1, { message: "A senha é obrigatória." }),
 });
@@ -24,7 +24,9 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 
 export function LoginForm() {
   const [loading, setLoading] = useState(false);
+  const [skipLoading, setSkipLoading] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { login } = useAuth();
   const { toast } = useToast();
 
@@ -50,6 +52,26 @@ export function LoginForm() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSkipLogin = async () => {
+    setSkipLoading(true);
+    try {
+      // Pular o login chamando diretamente a credencial administrativa silenciosamente
+      await login('admin', 'johndoe');
+      toast({
+        title: "Sessão Iniciada!",
+        description: "Ignorando credenciais. Acessando painel de homologação...",
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Erro ao pular login",
+        description: "Não foi possível carregar o bypass de homologação.",
+      });
+    } finally {
+      setSkipLoading(false);
     }
   };
 
@@ -96,11 +118,11 @@ export function LoginForm() {
 
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
         <div className="space-y-2">
-          <Label htmlFor="email" className="text-slate-300 text-xs font-semibold uppercase tracking-wider">Usuário ou E-mail</Label>
+          <Label htmlFor="email" className="text-slate-300 text-xs font-semibold uppercase tracking-wider">Email Corporativo</Label>
           <Input 
             id="email" 
             type="text" 
-            placeholder="admin ou nome@empresa.com" 
+            placeholder="nome@empresa.com" 
             className="bg-slate-950/50 border-slate-800 text-white placeholder-slate-500 focus:border-blue-500 focus:ring-blue-500/20 transition-all"
             {...form.register("email")} 
           />
@@ -110,32 +132,40 @@ export function LoginForm() {
         </div>
         
         <div className="space-y-2">
-          <div className="flex justify-between items-center">
-            <Label htmlFor="password" className="text-slate-300 text-xs font-semibold uppercase tracking-wider">Senha de Acesso</Label>
+          <Label htmlFor="password" className="text-slate-300 text-xs font-semibold uppercase tracking-wider">Senha de Acesso</Label>
+          <div className="relative">
+            <Input 
+              id="password" 
+              type={showPassword ? "text" : "password"} 
+              placeholder="••••••••"
+              className="bg-slate-950/50 border-slate-800 text-white focus:border-blue-500 focus:ring-blue-500/20 transition-all pr-10"
+              {...form.register("password")} 
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
+              aria-label={showPassword ? "Ocultar senha" : "Exibir senha"}
+            >
+              {showPassword ? <EyeOff className="h-4.5 w-4.5" /> : <Eye className="h-4.5 w-4.5" />}
+            </button>
           </div>
-          <Input 
-            id="password" 
-            type="password" 
-            placeholder="••••••••"
-            className="bg-slate-950/50 border-slate-800 text-white focus:border-blue-500 focus:ring-blue-500/20 transition-all"
-            {...form.register("password")} 
-          />
           {form.formState.errors.password && (
             <p className="text-xs text-rose-500 font-medium">{form.formState.errors.password.message}</p>
           )}
         </div>
 
-        <div className="relative pt-2">
-          {/* Pontos brancos estelares interativos ao passar o mouse (80% menores: w-0.5 h-0.5 / 1.5px) */}
-          {isHovered && !loading && particles.map((p) => (
+        <div className="relative pt-2 space-y-3">
+          {/* Pontos brancos estelares interativos ao passar o mouse (30% maiores do que 1.2px = 1.6px) */}
+          {isHovered && !loading && !skipLoading && particles.map((p) => (
             <motion.div
               key={p.id}
               className="absolute rounded-full pointer-events-none z-20 bg-white"
               style={{
-                width: '1.2px',
-                height: '1.2px',
+                width: '1.6px',
+                height: '1.6px',
                 left: `calc(50% + ${p.x}px)`,
-                top: `calc(50% + ${p.y}px)`,
+                top: `calc(50% + ${p.y}px - 14px)`,
                 boxShadow: '0 0 4px 1px rgba(255, 255, 255, 0.8)',
               }}
               animate={{
@@ -153,10 +183,9 @@ export function LoginForm() {
             />
           ))}
 
-
           <motion.button 
             type="submit" 
-            disabled={loading} 
+            disabled={loading || skipLoading} 
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
             whileHover={{ scale: 1.015, boxShadow: "0 10px 25px -5px rgba(59, 130, 246, 0.4)" }}
@@ -170,10 +199,30 @@ export function LoginForm() {
               </>
             ) : "Entrar na Plataforma"}
           </motion.button>
+
+          {/* Botão Extra para Pular a Página de Login com feedback de clique */}
+          <motion.button
+            type="button"
+            disabled={loading || skipLoading}
+            onClick={handleSkipLogin}
+            whileHover={{ scale: 1.01, backgroundColor: "rgba(30, 41, 59, 0.5)" }}
+            whileTap={{ scale: 0.99 }}
+            className="w-full border border-slate-800 text-slate-300 hover:text-white font-medium py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+          >
+            {skipLoading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin text-slate-300" />
+                <span>Acessando...</span>
+              </>
+            ) : (
+              <span>Pular Autenticação (Homologação)</span>
+            )}
+          </motion.button>
         </div>
       </form>
     </motion.div>
   );
 }
+
 
 
